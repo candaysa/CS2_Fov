@@ -1,0 +1,7 @@
+{
+  "CS2_FOV": {
+    "PluginEnabled": true,
+    "FOVMin": 80,
+    "FOVMax": 130
+  }
+}

@@ -1,0 +1,26 @@
+# Build outputs
+bin/
+obj/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userprefs
+*.tmp
+*.log
+*.cache
+.vs/
+
+# Rider/JetBrains
+.idea/
+*.iml
+
+# Generated config/runtime data
+addons/swiftlys2/data/
+
+# Plugin binaries shipped alongside configs (keep configs only)
+configs/plugins/SLAYER_UnrestrictedFOV/Anatolia_Fov.dll
+
+# Publish artifacts
+source/CS2_FOV/bin/
+source/CS2_FOV/obj/
