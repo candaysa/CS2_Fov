@@ -19,7 +19,7 @@ namespace Anatolia_Fov;
 	Version = "1.0.2",
 	Name = "CS2 - FOV",
 	Author = "CanDaysa",
-	Description = "Oyuncuların kendi FOV ayarlarını seçmelerine olanak tanır"
+	Description = "Allows players to choose their own FOV settings"
 )]
 public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 {
@@ -53,7 +53,7 @@ public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 
 	private void InitializeDataFile()
 	{
-		// Game klasöründe plugin veri dosyasını depola
+		// Store plugin data file under the game directory
 		// /game/csgo/addons/swiftlys2/data/CS2_FOV/
 		string gameRoot = Directory.GetCurrentDirectory();
 		string dataDir = Path.Combine(
@@ -93,7 +93,7 @@ public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 		}
 		catch
 		{
-			// Sessizce başarısız ol
+			// Fail silently
 		}
 	}
 
@@ -111,7 +111,7 @@ public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 
 	private void RegisterPlayerDisconnectCleanup()
 	{
-		// Oyuncu çıktığında FOV ayarlarını temizle
+		// Clear FOV settings when the player disconnects
 		Core.Event.OnClientDisconnected += (disconnectEvent) =>
 		{
 			int playerId = disconnectEvent.PlayerId;
@@ -121,7 +121,7 @@ public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 
 	private void RegisterClientPutInServerHook()
 	{
-		// Oyuncu spawn olduğunda (client put in server) FOV ayarını uygula
+		// Apply saved FOV when the player spawns (client put in server)
 		Core.Event.OnClientPutInServer += (clientPutInServerEvent) =>
 		{
 			try
@@ -130,22 +130,22 @@ public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 				if (player == null || !player.IsValid)
 					return;
 
-				// SteamID'den kaydedilmiş FOV'u ara
+				// Look up any saved FOV by SteamID
 				string steamIdStr = player.SteamID.ToString();
 				if (_persistentFOVData.TryGetValue(steamIdStr, out int savedFOV))
 				{
-					// Kaydedilmiş FOV'u uygula
+					// Apply the saved FOV
 					ApplyFOVToPlayer(player, savedFOV);
 				}
 				else
 				{
-					// İlk kez bağlanıyorsa default FOV ayarla
+					// First time seeing this player: apply default FOV
 					SetPlayerFOV(player, 90);
 				}
 			}
 			catch
 			{
-				// Hata sessizce yoksayıl
+				// Ignore errors
 			}
 		};
 	}
@@ -206,15 +206,15 @@ public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 		int playerId = player.Slot;
 		int clamped = Math.Clamp(fov, _config.FOVMin, _config.FOVMax);
 
-		// Geçici sözlüğe kaydet (session süresi)
+		// Save to in-memory session cache
 		_playerFOVSettings[playerId] = clamped;
 		
-		// Kalıcı veri dosyasına kaydet (SteamID ile)
+		// Persist to disk keyed by SteamID
 		string steamIdStr = player.SteamID.ToString();
 		_persistentFOVData[steamIdStr] = clamped;
 		SavePersistentData();
 
-		// Hemen uygula
+		// Apply immediately
 		ApplyFOVToPlayer(player, clamped);
 	}
 
@@ -222,7 +222,7 @@ public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 	{
 		try
 		{
-			// Oyuncu kontrolörü ve pawn'ı al
+			// Get controller and pawn
 			var controller = player.Controller;
 			var pawn = player.PlayerPawn;
 
@@ -231,15 +231,15 @@ public sealed class Plugin(ISwiftlyCore core) : BasePlugin(core)
 
 			uint fovUint = (uint)fov;
 
-			// FOV'u kontrolörde ayarla (ana mekanizma)
+			// Set FOV on controller (primary mechanism)
 			controller.DesiredFOV = fovUint;
 			
-			// Engine'e property değiştiğini bildir
+			// Notify the engine that the property changed
 			controller.DesiredFOVUpdated();
 		}
 		catch
 		{
-			// Hata sessizce yoksayıl
+			// Ignore errors
 		}
 	}
 }
